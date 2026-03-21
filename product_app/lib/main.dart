@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:product_app/data/datasources/product_cache_datasource.dart';
 import 'package:product_app/data/datasources/product_remote_datasource.dart';
 import 'package:product_app/data/repositories/product_repository_impl.dart';
-import 'package:product_app/presentation/pages/product_page.dart';
+import 'package:product_app/presentation/pages/home_page.dart';
 import 'package:product_app/presentation/viewmodels/product_viewmodel.dart';
 
 void main() {
@@ -29,7 +29,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "Product App",
-      home: ProductPage(viewModel: viewModel),
+      debugShowCheckedModeBanner: false,
+      home: HomePage(viewModel: viewModel),
     );
   }
 }

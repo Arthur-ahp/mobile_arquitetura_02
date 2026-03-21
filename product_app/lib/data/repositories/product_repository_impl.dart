@@ -24,6 +24,7 @@ class ProductRepositoryImpl implements ProductRepository {
           title: m.title, 
           price: m.price, 
           image: m.image,
+          description: m.description,
         )).toList();  
     } catch (e) {
       final cached = cache.get();
@@ -33,7 +34,8 @@ class ProductRepositoryImpl implements ProductRepository {
           id: m.id, 
           title: m.title, 
           price: m.price, 
-          image: m.image,)).toList();
+          image: m.image,
+          description: m.description)).toList();
       }
       throw Failure("Não foi possível carregar os produtos!");
     }

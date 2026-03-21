@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:product_app/domain/entities/product.dart';
 import 'package:product_app/presentation/viewmodels/product_state.dart';
 import 'package:product_app/presentation/viewmodels/product_viewmodel.dart';
+import 'product_detail_page.dart';
 
 class ProductPage extends StatelessWidget {
   final ProductViewModel viewModel;
@@ -35,7 +36,14 @@ class ProductPage extends StatelessWidget {
               return ListTile(
                 title: Text(product.title),
                 subtitle: Text("\$${product.price}"),
-
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ProductDetailPage(product: product),
+                    ),
+                  );
+                },
                 trailing: IconButton(
                   icon: Icon(
                     product.favorite
