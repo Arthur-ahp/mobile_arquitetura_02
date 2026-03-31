@@ -8,10 +8,8 @@ import 'package:product_app/presentation/viewmodels/product_viewmodel.dart';
 
 void main() {
   final client = Dio();
-
   final remote = ProductRemoteDatasource(client);
   final cache = ProductCacheDatasource();
-
   final repository = ProductRepositoryImpl(remote, cache);
   final viewModel = ProductViewModel(repository);
 
@@ -28,8 +26,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: "Product App",
+      title: 'Gerenciador de Produtos',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+        useMaterial3: true,
+      ),
       home: HomePage(viewModel: viewModel),
     );
   }

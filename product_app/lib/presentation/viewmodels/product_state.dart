@@ -6,9 +6,9 @@ class ProductState {
   final String? error;
 
   const ProductState({
-    this.isLoading = false, 
-    this.products = const [], 
-    this.error
+    this.isLoading = false,
+    this.products = const [],
+    this.error,
   });
 
   ProductState copyWith({
