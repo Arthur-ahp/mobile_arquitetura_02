@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'product_page.dart';
 import '../viewmodels/product_viewmodel.dart';
 
 class HomePage extends StatelessWidget {
@@ -38,14 +37,7 @@ class HomePage extends StatelessWidget {
               ),
               const SizedBox(height: 48),
               FilledButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ProductPage(viewModel: viewModel),
-                    ),
-                  );
-                },
+                onPressed: () => Navigator.pushNamed(context, '/products'),
                 icon: const Icon(Icons.list_alt),
                 label: const Text('Ver Produtos'),
                 style: FilledButton.styleFrom(

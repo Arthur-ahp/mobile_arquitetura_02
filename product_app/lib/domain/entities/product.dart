@@ -5,7 +5,7 @@ class Product {
   final String image;
   final String description;
   final String category;
-  bool favorite;
+  final bool favorite;
 
   Product({
     this.id,

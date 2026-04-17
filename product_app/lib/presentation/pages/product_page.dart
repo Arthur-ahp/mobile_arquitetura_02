@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:product_app/presentation/viewmodels/product_state.dart';
 import 'package:product_app/presentation/viewmodels/product_viewmodel.dart';
 import 'package:product_app/presentation/widgets/product_card.dart';
-import 'product_detail_page.dart';
-import 'product_form_page.dart';
 
 class ProductPage extends StatelessWidget {
   final ProductViewModel viewModel;
@@ -47,6 +45,29 @@ class ProductPage extends StatelessWidget {
         title: const Text('Produtos'),
         centerTitle: true,
         actions: [
+          ValueListenableBuilder<ProductState>(
+            valueListenable: viewModel.state,
+            builder: (context, state, _) {
+              final categories = state.products
+                  .map((p) => p.category)
+                  .toSet()
+                  .toList()
+                ..sort();
+              return DropdownButton<String>(
+                value: state.filterCategory,
+                hint: const Text('Categoria'),
+                underline: const SizedBox.shrink(),
+                icon: const Icon(Icons.filter_list),
+                items: [
+                  const DropdownMenuItem(value: null, child: Text('Todas')),
+                  ...categories.map(
+                    (c) => DropdownMenuItem(value: c, child: Text(c)),
+                  ),
+                ],
+                onChanged: viewModel.filterByCategory,
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Atualizar',
@@ -55,14 +76,7 @@ class ProductPage extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ProductFormPage(viewModel: viewModel),
-            ),
-          );
-        },
+        onPressed: () => Navigator.pushNamed(context, '/product/form'),
         icon: const Icon(Icons.add),
         label: const Text('Novo Produto'),
       ),
@@ -91,36 +105,29 @@ class ProductPage extends StatelessWidget {
             );
           }
 
-          if (state.products.isEmpty) {
+          final products = state.filteredProducts;
+
+          if (products.isEmpty) {
             return const Center(child: Text('Nenhum produto encontrado.'));
           }
 
           return ListView.builder(
             padding: const EdgeInsets.symmetric(vertical: 12),
-            itemCount: state.products.length,
+            itemCount: products.length,
             itemBuilder: (context, index) {
-              final product = state.products[index];
+              final product = products[index];
               return ProductCard(
                 product: product,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ProductDetailPage(product: product),
-                    ),
-                  );
-                },
-                onEdit: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ProductFormPage(
-                        viewModel: viewModel,
-                        product: product,
-                      ),
-                    ),
-                  );
-                },
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/product/detail',
+                  arguments: product,
+                ),
+                onEdit: () => Navigator.pushNamed(
+                  context,
+                  '/product/form',
+                  arguments: {'product': product},
+                ),
                 onDelete: () {
                   if (product.id != null) {
                     _confirmDelete(context, product.id!, product.title);

@@ -1,10 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:product_app/domain/entities/product.dart';
+import 'package:product_app/presentation/viewmodels/product_viewmodel.dart';
 
 class ProductDetailPage extends StatelessWidget {
   final Product product;
+  final ProductViewModel viewModel;
 
-  const ProductDetailPage({super.key, required this.product});
+  const ProductDetailPage({
+    super.key,
+    required this.product,
+    required this.viewModel,
+  });
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Confirmar exclusão'),
+        content: Text('Deseja excluir "${product.title}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final ok = await viewModel.deleteProduct(product.id!);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(ok ? 'Produto excluído!' : 'Erro ao excluir.')),
+        );
+        if (ok) Navigator.pop(context);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +49,26 @@ class ProductDetailPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Detalhes do Produto'),
         centerTitle: true,
+        actions: [
+          if (product.id != null)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              tooltip: 'Excluir',
+              onPressed: () => _confirmDelete(context),
+            ),
+        ],
       ),
+      floatingActionButton: product.id != null
+          ? FloatingActionButton(
+              onPressed: () => Navigator.pushNamed(
+                context,
+                '/product/form',
+                arguments: {'product': product},
+              ),
+              tooltip: 'Editar',
+              child: const Icon(Icons.edit_outlined),
+            )
+          : null,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(

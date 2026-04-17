@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:product_app/core/errors/failure.dart';
 import 'package:product_app/data/datasources/product_cache_datasource.dart';
 import 'package:product_app/data/datasources/product_remote_datasource.dart';
@@ -10,6 +11,11 @@ class ProductRepositoryImpl implements ProductRepository {
   final ProductCacheDatasource cache;
 
   ProductRepositoryImpl(this.remote, this.cache);
+
+  int _generateId() {
+    final rand = Random();
+    return DateTime.now().millisecondsSinceEpoch + rand.nextInt(99999);
+  }
 
   @override
   Future<List<Product>> getProducts() async {
@@ -31,9 +37,8 @@ class ProductRepositoryImpl implements ProductRepository {
     try {
       final model = ProductModel.fromEntity(product);
       final created = await remote.createProduct(model);
-      // A FakeStore retorna o objeto com id simulado; adicionamos ao cache
       final withId = ProductModel(
-        id: created.id ?? DateTime.now().millisecondsSinceEpoch,
+        id: (created.id != null && created.id! > 0) ? created.id : _generateId(),
         title: product.title,
         price: product.price,
         image: product.image,

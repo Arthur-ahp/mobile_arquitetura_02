@@ -7,7 +7,7 @@ class ProductModel {
   final String image;
   final String description;
   final String category;
-  bool favorite;
+  final bool favorite;
 
   ProductModel({
     this.id,
