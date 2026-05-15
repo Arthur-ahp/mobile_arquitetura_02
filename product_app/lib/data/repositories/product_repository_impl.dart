@@ -33,15 +33,36 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
+  Future<Product> getProductById(int id) async {
+    try {
+      final model = await remote.getProductById(id);
+      cache.addOrUpdate(model);
+      return model.toEntity();
+    } catch (e) {
+      final cached = cache.get();
+      if (cached != null) {
+        for (final product in cached) {
+          if (product.id == id) return product.toEntity();
+        }
+      }
+      throw Failure('Erro ao carregar produto: $e');
+    }
+  }
+
+  @override
   Future<Product> createProduct(Product product) async {
     try {
       final model = ProductModel.fromEntity(product);
       final created = await remote.createProduct(model);
       final withId = ProductModel(
-        id: (created.id != null && created.id! > 0) ? created.id : _generateId(),
+        id: (created.id != null && created.id! > 0)
+            ? created.id
+            : _generateId(),
         title: product.title,
         price: product.price,
-        image: product.image,
+        rating: product.rating,
+        stock: product.stock,
+        thumbnail: product.thumbnail,
         description: product.description,
         category: product.category,
       );

@@ -5,13 +5,9 @@ import 'package:product_app/presentation/widgets/custom_form_field.dart';
 
 class ProductFormPage extends StatefulWidget {
   final ProductViewModel viewModel;
-  final Product? product; // null = cadastro, não-null = edição
+  final Product? product;
 
-  const ProductFormPage({
-    super.key,
-    required this.viewModel,
-    this.product,
-  });
+  const ProductFormPage({super.key, required this.viewModel, this.product});
 
   @override
   State<ProductFormPage> createState() => _ProductFormPageState();
@@ -25,7 +21,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
   late final TextEditingController _priceController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _categoryController;
-  late final TextEditingController _imageController;
+  late final TextEditingController _thumbnailController;
 
   bool get _isEditing => widget.product != null;
 
@@ -35,10 +31,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
     final p = widget.product;
     _titleController = TextEditingController(text: p?.title ?? '');
     _priceController = TextEditingController(
-        text: p != null ? p.price.toStringAsFixed(2) : '');
+      text: p != null ? p.price.toStringAsFixed(2) : '',
+    );
     _descriptionController = TextEditingController(text: p?.description ?? '');
     _categoryController = TextEditingController(text: p?.category ?? '');
-    _imageController = TextEditingController(text: p?.image ?? '');
+    _thumbnailController = TextEditingController(text: p?.thumbnail ?? '');
   }
 
   @override
@@ -47,7 +44,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
     _priceController.dispose();
     _descriptionController.dispose();
     _categoryController.dispose();
-    _imageController.dispose();
+    _thumbnailController.dispose();
     super.dispose();
   }
 
@@ -61,22 +58,23 @@ class _ProductFormPageState extends State<ProductFormPage> {
       price: double.parse(_priceController.text.trim().replaceAll(',', '.')),
       description: _descriptionController.text.trim(),
       category: _categoryController.text.trim(),
-      image: _imageController.text.trim(),
+      thumbnail: _thumbnailController.text.trim(),
+      rating: widget.product?.rating ?? 0,
+      stock: widget.product?.stock ?? 0,
     );
 
-    bool ok;
-    if (_isEditing) {
-      ok = await widget.viewModel.updateProduct(product);
-    } else {
-      ok = await widget.viewModel.createProduct(product);
-    }
+    final ok = _isEditing
+        ? await widget.viewModel.updateProduct(product)
+        : await widget.viewModel.createProduct(product);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(ok
-              ? (_isEditing ? 'Produto atualizado!' : 'Produto cadastrado!')
-              : 'Erro ao salvar produto.'),
+          content: Text(
+            ok
+                ? (_isEditing ? 'Produto atualizado!' : 'Produto cadastrado!')
+                : 'Erro ao salvar produto.',
+          ),
         ),
       );
       if (ok) Navigator.pop(context);
@@ -99,22 +97,23 @@ class _ProductFormPageState extends State<ProductFormPage> {
           child: Column(
             children: [
               CustomFormField(
-                label: 'Título',
+                label: 'Titulo',
                 controller: _titleController,
-                hint: 'Ex: Camiseta básica branca',
+                hint: 'Ex: Camiseta basica branca',
                 validator: (v) =>
-                    (v == null || v.isEmpty) ? 'Informe o título' : null,
+                    (v == null || v.isEmpty) ? 'Informe o titulo' : null,
               ),
               CustomFormField(
-                label: 'Preço',
+                label: 'Preco',
                 controller: _priceController,
                 hint: 'Ex: 49.90',
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 validator: (v) {
-                  if (v == null || v.isEmpty) return 'Informe o preço';
+                  if (v == null || v.isEmpty) return 'Informe o preco';
                   if (double.tryParse(v.replaceAll(',', '.')) == null) {
-                    return 'Preço inválido';
+                    return 'Preco invalido';
                   }
                   return null;
                 },
@@ -127,16 +126,16 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     (v == null || v.isEmpty) ? 'Informe a categoria' : null,
               ),
               CustomFormField(
-                label: 'Descrição',
+                label: 'Descricao',
                 controller: _descriptionController,
                 hint: 'Descreva o produto...',
                 maxLines: 4,
                 validator: (v) =>
-                    (v == null || v.isEmpty) ? 'Informe a descrição' : null,
+                    (v == null || v.isEmpty) ? 'Informe a descricao' : null,
               ),
               CustomFormField(
                 label: 'URL da Imagem',
-                controller: _imageController,
+                controller: _thumbnailController,
                 hint: 'https://...',
                 validator: (v) =>
                     (v == null || v.isEmpty) ? 'Informe a URL da imagem' : null,
@@ -154,10 +153,14 @@ class _ProductFormPageState extends State<ProductFormPage> {
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : Text(
-                          _isEditing ? 'Salvar Alterações' : 'Cadastrar Produto',
+                          _isEditing
+                              ? 'Salvar Alteracoes'
+                              : 'Cadastrar Produto',
                           style: const TextStyle(fontSize: 16),
                         ),
                 ),

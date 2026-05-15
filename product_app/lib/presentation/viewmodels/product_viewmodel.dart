@@ -20,6 +20,24 @@ class ProductViewModel {
     }
   }
 
+  Future<Product?> getProductById(int id) async {
+    try {
+      final product = await repository.getProductById(id);
+      final products = List<Product>.from(state.value.products);
+      final index = products.indexWhere((p) => p.id == product.id);
+      if (index >= 0) {
+        products[index] = product;
+      } else {
+        products.add(product);
+      }
+      state.value = state.value.copyWith(products: products, clearError: true);
+      return product;
+    } catch (e) {
+      state.value = state.value.copyWith(error: e.toString());
+      return null;
+    }
+  }
+
   Future<bool> createProduct(Product product) async {
     state.value = state.value.copyWith(isLoading: true, clearError: true);
     try {

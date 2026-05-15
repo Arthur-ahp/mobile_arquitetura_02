@@ -33,7 +33,7 @@ class ProductCard extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.network(
-                  product.image,
+                  product.thumbnail,
                   width: 72,
                   height: 72,
                   fit: BoxFit.contain,
@@ -41,7 +41,10 @@ class ProductCard extends StatelessWidget {
                     width: 72,
                     height: 72,
                     color: Colors.grey[200],
-                    child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                    child: const Icon(
+                      Icons.image_not_supported,
+                      color: Colors.grey,
+                    ),
                   ),
                 ),
               ),
@@ -61,7 +64,10 @@ class ProductCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.secondaryContainer,
                         borderRadius: BorderRadius.circular(10),
@@ -82,6 +88,11 @@ class ProductCard extends StatelessWidget {
                         color: Theme.of(context).colorScheme.primary,
                         fontSize: 15,
                       ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Estoque: ${product.stock} | Avaliacao: ${product.rating.toStringAsFixed(1)}',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
                     ),
                   ],
                 ),

@@ -3,21 +3,23 @@ import 'package:product_app/data/models/product_model.dart';
 
 class ProductRemoteDatasource {
   final Dio client;
-  static const String _baseUrl = 'https://fakestoreapi.com/products';
+  static const String _baseUrl = 'https://dummyjson.com/products';
 
   ProductRemoteDatasource(this.client);
 
   Future<List<ProductModel>> getProducts() async {
     final response = await client.get(_baseUrl);
-    final List<dynamic> data = response.data;
+    final List<dynamic> data = response.data['products'];
     return data.map((json) => ProductModel.fromJson(json)).toList();
   }
 
+  Future<ProductModel> getProductById(int id) async {
+    final response = await client.get('$_baseUrl/$id');
+    return ProductModel.fromJson(response.data);
+  }
+
   Future<ProductModel> createProduct(ProductModel product) async {
-    final response = await client.post(
-      _baseUrl,
-      data: product.toJson(),
-    );
+    final response = await client.post('$_baseUrl/add', data: product.toJson());
     return ProductModel.fromJson(response.data);
   }
 

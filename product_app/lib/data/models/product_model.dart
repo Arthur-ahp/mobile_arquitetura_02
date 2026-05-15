@@ -4,7 +4,9 @@ class ProductModel {
   final int? id;
   final String title;
   final double price;
-  final String image;
+  final double rating;
+  final int stock;
+  final String thumbnail;
   final String description;
   final String category;
   final bool favorite;
@@ -13,7 +15,9 @@ class ProductModel {
     this.id,
     required this.title,
     required this.price,
-    required this.image,
+    this.rating = 0,
+    this.stock = 0,
+    required this.thumbnail,
     required this.description,
     required this.category,
     this.favorite = false,
@@ -23,8 +27,10 @@ class ProductModel {
     return ProductModel(
       id: json['id'],
       title: json['title'] ?? '',
-      price: (json['price'] as num).toDouble(),
-      image: json['image'] ?? '',
+      price: ((json['price'] ?? 0) as num).toDouble(),
+      rating: ((json['rating'] ?? 0) as num).toDouble(),
+      stock: json['stock'] ?? 0,
+      thumbnail: json['thumbnail'] ?? json['image'] ?? '',
       description: json['description'] ?? '',
       category: json['category'] ?? '',
     );
@@ -35,29 +41,35 @@ class ProductModel {
       if (id != null) 'id': id,
       'title': title,
       'price': price,
-      'image': image,
+      'rating': rating,
+      'stock': stock,
+      'thumbnail': thumbnail,
       'description': description,
       'category': category,
     };
   }
 
   Product toEntity() => Product(
-        id: id,
-        title: title,
-        price: price,
-        image: image,
-        description: description,
-        category: category,
-        favorite: favorite,
-      );
+    id: id,
+    title: title,
+    price: price,
+    rating: rating,
+    stock: stock,
+    thumbnail: thumbnail,
+    description: description,
+    category: category,
+    favorite: favorite,
+  );
 
   factory ProductModel.fromEntity(Product p) => ProductModel(
-        id: p.id,
-        title: p.title,
-        price: p.price,
-        image: p.image,
-        description: p.description,
-        category: p.category,
-        favorite: p.favorite,
-      );
+    id: p.id,
+    title: p.title,
+    price: p.price,
+    rating: p.rating,
+    stock: p.stock,
+    thumbnail: p.thumbnail,
+    description: p.description,
+    category: p.category,
+    favorite: p.favorite,
+  );
 }

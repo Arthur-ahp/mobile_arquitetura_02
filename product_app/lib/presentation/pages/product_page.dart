@@ -1,18 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:product_app/core/session/session_controller.dart';
+import 'package:product_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:product_app/presentation/viewmodels/product_state.dart';
 import 'package:product_app/presentation/viewmodels/product_viewmodel.dart';
 import 'package:product_app/presentation/widgets/product_card.dart';
 
-class ProductPage extends StatelessWidget {
+class ProductPage extends StatefulWidget {
   final ProductViewModel viewModel;
+  final AuthViewModel authViewModel;
 
-  const ProductPage({super.key, required this.viewModel});
+  const ProductPage({
+    super.key,
+    required this.viewModel,
+    required this.authViewModel,
+  });
 
-  Future<void> _confirmDelete(BuildContext context, int id, String title) async {
+  @override
+  State<ProductPage> createState() => _ProductPageState();
+}
+
+class _ProductPageState extends State<ProductPage> {
+  @override
+  void initState() {
+    super.initState();
+    if (SessionController.instance.isLoggedIn) {
+      widget.viewModel.loadProducts();
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.pushReplacementNamed(context, '/login');
+      });
+    }
+  }
+
+  Future<void> _confirmDelete(
+    BuildContext context,
+    int id,
+    String title,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Confirmar exclusão'),
+        title: const Text('Confirmar exclusao'),
         content: Text('Deseja excluir "$title"?'),
         actions: [
           TextButton(
@@ -29,30 +57,54 @@ class ProductPage extends StatelessWidget {
     );
 
     if (confirmed == true) {
-      final ok = await viewModel.deleteProduct(id);
+      final ok = await widget.viewModel.deleteProduct(id);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(ok ? 'Produto excluído!' : 'Erro ao excluir.')),
+          SnackBar(
+            content: Text(ok ? 'Produto excluido!' : 'Erro ao excluir.'),
+          ),
         );
       }
     }
   }
 
+  void _logout() {
+    widget.authViewModel.logout();
+    Navigator.pushReplacementNamed(context, '/login');
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = SessionController.instance.user;
+
+    if (user == null) {
+      return const Scaffold(body: SizedBox.shrink());
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Produtos'),
         centerTitle: true,
         actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 14,
+                  backgroundImage: NetworkImage(user.image),
+                ),
+                const SizedBox(width: 6),
+                Text(user.firstName),
+              ],
+            ),
+          ),
           ValueListenableBuilder<ProductState>(
-            valueListenable: viewModel.state,
+            valueListenable: widget.viewModel.state,
             builder: (context, state, _) {
-              final categories = state.products
-                  .map((p) => p.category)
-                  .toSet()
-                  .toList()
-                ..sort();
+              final categories =
+                  state.products.map((p) => p.category).toSet().toList()
+                    ..sort();
               return DropdownButton<String>(
                 value: state.filterCategory,
                 hint: const Text('Categoria'),
@@ -64,14 +116,19 @@ class ProductPage extends StatelessWidget {
                     (c) => DropdownMenuItem(value: c, child: Text(c)),
                   ),
                 ],
-                onChanged: viewModel.filterByCategory,
+                onChanged: widget.viewModel.filterByCategory,
               );
             },
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Atualizar',
-            onPressed: viewModel.loadProducts,
+            onPressed: widget.viewModel.loadProducts,
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Sair',
+            onPressed: _logout,
           ),
         ],
       ),
@@ -81,7 +138,7 @@ class ProductPage extends StatelessWidget {
         label: const Text('Novo Produto'),
       ),
       body: ValueListenableBuilder<ProductState>(
-        valueListenable: viewModel.state,
+        valueListenable: widget.viewModel.state,
         builder: (context, state, _) {
           if (state.isLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -97,7 +154,7 @@ class ProductPage extends StatelessWidget {
                   Text(state.error!, textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   FilledButton(
-                    onPressed: viewModel.loadProducts,
+                    onPressed: widget.viewModel.loadProducts,
                     child: const Text('Tentar novamente'),
                   ),
                 ],
@@ -118,11 +175,15 @@ class ProductPage extends StatelessWidget {
               final product = products[index];
               return ProductCard(
                 product: product,
-                onTap: () => Navigator.pushNamed(
-                  context,
-                  '/product/detail',
-                  arguments: product,
-                ),
+                onTap: () {
+                  if (product.id != null) {
+                    Navigator.pushNamed(
+                      context,
+                      '/product/detail',
+                      arguments: product.id,
+                    );
+                  }
+                },
                 onEdit: () => Navigator.pushNamed(
                   context,
                   '/product/form',
@@ -133,7 +194,8 @@ class ProductPage extends StatelessWidget {
                     _confirmDelete(context, product.id!, product.title);
                   }
                 },
-                onToggleFavorite: () => viewModel.toggleFavorite(product),
+                onToggleFavorite: () =>
+                    widget.viewModel.toggleFavorite(product),
               );
             },
           );
