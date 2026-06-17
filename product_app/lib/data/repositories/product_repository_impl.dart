@@ -9,6 +9,7 @@ import 'package:product_app/domain/repositories/product_repository.dart';
 class ProductRepositoryImpl implements ProductRepository {
   final ProductRemoteDatasource remote;
   final ProductCacheDatasource cache;
+  final Map<int, ProductModel> _localProducts = {};
 
   ProductRepositoryImpl(this.remote, this.cache);
 
@@ -21,8 +22,9 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<List<Product>> getProducts() async {
     try {
       final models = await remote.getProducts();
-      cache.save(models);
-      return models.map((m) => m.toEntity()).toList();
+      final merged = _mergeLocalProducts(models);
+      cache.save(merged);
+      return merged.map((m) => m.toEntity()).toList();
     } catch (e) {
       final cached = cache.get();
       if (cached != null) {
@@ -65,7 +67,11 @@ class ProductRepositoryImpl implements ProductRepository {
         thumbnail: product.thumbnail,
         description: product.description,
         category: product.category,
+        favorite: product.favorite,
       );
+      if (withId.id != null) {
+        _localProducts[withId.id!] = withId;
+      }
       cache.addOrUpdate(withId);
       return withId.toEntity();
     } catch (e) {
@@ -77,6 +83,12 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<Product> updateProduct(Product product) async {
     try {
       final model = ProductModel.fromEntity(product);
+      if (product.id != null && _localProducts.containsKey(product.id)) {
+        _localProducts[product.id!] = model;
+        cache.addOrUpdate(model);
+        return model.toEntity();
+      }
+
       final updated = await remote.updateProduct(model);
       cache.addOrUpdate(updated);
       return updated.toEntity();
@@ -88,10 +100,28 @@ class ProductRepositoryImpl implements ProductRepository {
   @override
   Future<void> deleteProduct(int id) async {
     try {
+      if (_localProducts.remove(id) != null) {
+        cache.remove(id);
+        return;
+      }
+
       await remote.deleteProduct(id);
       cache.remove(id);
     } catch (e) {
       throw Failure('Erro ao excluir produto: $e');
     }
+  }
+
+  List<ProductModel> _mergeLocalProducts(List<ProductModel> remoteProducts) {
+    final merged = List<ProductModel>.from(remoteProducts);
+    for (final localProduct in _localProducts.values) {
+      final index = merged.indexWhere((p) => p.id == localProduct.id);
+      if (index >= 0) {
+        merged[index] = localProduct;
+      } else {
+        merged.add(localProduct);
+      }
+    }
+    return merged;
   }
 }

@@ -68,8 +68,9 @@ class _ProductPageState extends State<ProductPage> {
     }
   }
 
-  void _logout() {
-    widget.authViewModel.logout();
+  Future<void> _logout() async {
+    await widget.authViewModel.logout();
+    if (!mounted) return;
     Navigator.pushReplacementNamed(context, '/login');
   }
 

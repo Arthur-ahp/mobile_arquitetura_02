@@ -14,7 +14,14 @@ class ProductViewModel {
     state.value = state.value.copyWith(isLoading: true, clearError: true);
     try {
       final products = await repository.getProducts();
-      state.value = state.value.copyWith(isLoading: false, products: products);
+      final favorites = {
+        for (final product in state.value.products)
+          if (product.id != null && product.favorite) product.id,
+      };
+      final merged = products.map((product) {
+        return product.copyWith(favorite: favorites.contains(product.id));
+      }).toList();
+      state.value = state.value.copyWith(isLoading: false, products: merged);
     } catch (e) {
       state.value = state.value.copyWith(isLoading: false, error: e.toString());
     }
@@ -25,13 +32,15 @@ class ProductViewModel {
       final product = await repository.getProductById(id);
       final products = List<Product>.from(state.value.products);
       final index = products.indexWhere((p) => p.id == product.id);
+      final favorite = index >= 0 ? products[index].favorite : product.favorite;
+      final updatedProduct = product.copyWith(favorite: favorite);
       if (index >= 0) {
-        products[index] = product;
+        products[index] = updatedProduct;
       } else {
-        products.add(product);
+        products.add(updatedProduct);
       }
       state.value = state.value.copyWith(products: products, clearError: true);
-      return product;
+      return updatedProduct;
     } catch (e) {
       state.value = state.value.copyWith(error: e.toString());
       return null;
@@ -55,8 +64,9 @@ class ProductViewModel {
     state.value = state.value.copyWith(isLoading: true, clearError: true);
     try {
       final updated = await repository.updateProduct(product);
+      final updatedWithFavorite = updated.copyWith(favorite: product.favorite);
       final list = state.value.products.map((p) {
-        return p.id == updated.id ? updated : p;
+        return p.id == updatedWithFavorite.id ? updatedWithFavorite : p;
       }).toList();
       state.value = state.value.copyWith(isLoading: false, products: list);
       return true;

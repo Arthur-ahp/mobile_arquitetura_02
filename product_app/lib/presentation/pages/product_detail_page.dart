@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:product_app/core/session/session_controller.dart';
 import 'package:product_app/domain/entities/product.dart';
 import 'package:product_app/presentation/viewmodels/product_viewmodel.dart';
 
@@ -23,6 +24,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   void initState() {
     super.initState();
     _productFuture = widget.viewModel.getProductById(widget.productId);
+    if (!SessionController.instance.isLoggedIn) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.pushReplacementNamed(context, '/login');
+      });
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context, Product product) async {
@@ -96,6 +102,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Widget _buildBody(BuildContext context, AsyncSnapshot<Product?> snapshot) {
+    if (!SessionController.instance.isLoggedIn) {
+      return const SizedBox.shrink();
+    }
+
     if (snapshot.connectionState == ConnectionState.waiting) {
       return const Center(child: CircularProgressIndicator());
     }

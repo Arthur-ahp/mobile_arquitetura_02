@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:product_app/core/session/session_controller.dart';
 import 'package:product_app/domain/entities/product.dart';
 import 'package:product_app/presentation/viewmodels/product_viewmodel.dart';
 import 'package:product_app/presentation/widgets/custom_form_field.dart';
@@ -36,6 +37,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
     _descriptionController = TextEditingController(text: p?.description ?? '');
     _categoryController = TextEditingController(text: p?.category ?? '');
     _thumbnailController = TextEditingController(text: p?.thumbnail ?? '');
+    if (!SessionController.instance.isLoggedIn) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.pushReplacementNamed(context, '/login');
+      });
+    }
   }
 
   @override
@@ -85,6 +91,10 @@ class _ProductFormPageState extends State<ProductFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (!SessionController.instance.isLoggedIn) {
+      return const Scaffold(body: SizedBox.shrink());
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditing ? 'Editar Produto' : 'Novo Produto'),

@@ -11,18 +11,34 @@ class AuthRemoteDatasource {
     required String username,
     required String password,
   }) async {
-    final response = await client.post(
-      '$_baseUrl/login',
-      data: {'username': username, 'password': password, 'expiresInMins': 30},
-    );
-    return AuthUserModel.fromJson(response.data);
+    try {
+      final response = await client.post(
+        '$_baseUrl/login',
+        data: {'username': username, 'password': password, 'expiresInMins': 30},
+      );
+      return AuthUserModel.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        throw Exception('Tempo limite excedido ao realizar login');
+      }
+      throw Exception('Usuario ou senha invalidos');
+    }
   }
 
   Future<AuthUserModel> getCurrentUser(String accessToken) async {
-    final response = await client.get(
-      '$_baseUrl/me',
-      options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
-    );
-    return AuthUserModel.fromJson(response.data);
+    try {
+      final response = await client.get(
+        '$_baseUrl/me',
+        options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
+      );
+      return AuthUserModel.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        throw Exception('Tempo limite excedido ao validar sessao');
+      }
+      throw Exception('Token invalido ou expirado');
+    }
   }
 }

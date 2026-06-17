@@ -21,7 +21,7 @@ class AuthViewModel {
         username: username,
         password: password,
       );
-      SessionController.instance.login(user);
+      await SessionController.instance.login(user);
       state.value = state.value.copyWith(isLoading: false, user: user);
       return true;
     } catch (e) {
@@ -42,7 +42,7 @@ class AuthViewModel {
     try {
       final currentUser = await repository.getCurrentUser(token);
       final user = _mergeTokens(currentUser, sessionUser);
-      SessionController.instance.login(user);
+      await SessionController.instance.login(user);
       state.value = state.value.copyWith(isLoading: false, user: user);
       return true;
     } catch (e) {
@@ -51,8 +51,8 @@ class AuthViewModel {
     }
   }
 
-  void logout() {
-    SessionController.instance.logout();
+  Future<void> logout() async {
+    await SessionController.instance.logout();
     state.value = const AuthState();
   }
 
